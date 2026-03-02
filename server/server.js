@@ -4,65 +4,99 @@ dotenv.config();
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+
 import confessionRoutes from './routes/confessions.js';
 import userRoutes from './routes/users.js';
-
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Middleware
-app.use(cors());
+
+// ================= MIDDLEWARE =================
+
+// Enable CORS (allow frontend to connect)
+app.use(cors({
+    origin: '*', // You can replace with your frontend URL later
+}));
+
+// Parse JSON
 app.use(express.json());
 
-// Routes
+
+// ================= ROUTES =================
+
+// Root route (important for Render)
+app.get('/', (req, res) => {
+    res.send('🚀 ConfessionHub API is running');
+});
+
+// Health check route
+app.get('/health', (req, res) => {
+    res.json({
+        success: true,
+        message: 'ConfessionHub API is healthy'
+    });
+});
+
+// API routes
 app.use('/confessions', confessionRoutes);
 app.use('/users', userRoutes);
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../dist')));
 
-// API Health check (optional, but good to keep under an /api prefix or similar if needed)
-app.get('/health', (req, res) => {
-    res.json({ message: 'Confession Wall API is running' });
-});
 
-// The "catchall" handler: for any request that doesn't
-// match one above, send back React's index.html file.
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist', 'index.html'));
-});
+// ================= DATABASE CONNECTION =================
 
-// Connect to MongoDB and start server
 mongoose.connect(process.env.MONGODB_URI)
-    .then(async () => {
-        console.log('✅ Connected to MongoDB');
+.then(async () => {
 
-        try {
-            const usersCollection = mongoose.connection.db.collection('users');
-            const indexes = await usersCollection.indexes();
-            console.log('🔍 Current database indexes:', indexes.map(i => i.name));
+    console.log('✅ Connected to MongoDB');
 
-            for (const index of indexes) {
-                // Drop any index that isn't _id_ or part of our new schema
-                if (index.name.includes('clerk') || index.name.includes('googleId') && index.name !== 'googleId_1') {
-                    console.log(`🧹 Dropping legacy index: ${index.name}`);
-                    await usersCollection.dropIndex(index.name);
-                }
+
+    // Optional: Clean old indexes
+    try {
+
+        const usersCollection = mongoose.connection.db.collection('users');
+
+        const indexes = await usersCollection.indexes();
+
+        console.log('🔍 Current indexes:',
+            indexes.map(index => index.name)
+        );
+
+        for (const index of indexes) {
+
+            if (
+                index.name.includes('clerk') ||
+                index.name.includes('googleId')
+            ) {
+
+                console.log(`🧹 Dropping old index: ${index.name}`);
+
+                await usersCollection.dropIndex(index.name);
             }
-        } catch (err) {
-            console.log('ℹ️ Index cleanup info:', err.message);
+
         }
 
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on http://localhost:${PORT}`);
-        });
-    })
-    .catch((err) => {
-        console.error('❌ MongoDB connection error:', err.message);
+    }
+    catch (error) {
+
+        console.log('ℹ️ Index cleanup skipped');
+
+    }
+
+
+
+    // ================= START SERVER =================
+
+    app.listen(PORT, () => {
+
+        console.log(`🚀 Server running on port ${PORT}`);
+
     });
+
+})
+.catch((error) => {
+
+    console.error('❌ MongoDB connection failed:', error.message);
+
+});
