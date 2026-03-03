@@ -279,6 +279,10 @@
   transition: all 0.3s ease;
 }
 
+.mask-input {
+  -webkit-text-security: disc;
+}
+
 .field-input option {
   background-color: #fff;
   color: #000;
@@ -314,6 +318,80 @@
   justify-content: flex-end;
   gap: 0.6rem;
   margin-top: 0.25rem;
+}
+
+/* Custom Dropdown in Form */
+.custom-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.custom-dropdown-trigger {
+  width: 100%;
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03) !important;
+  cursor: pointer;
+}
+
+.dropdown-selected-text {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+  padding: 0.4rem;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  animation: dropdownPop 0.2s ease;
+}
+
+@keyframes dropdownPop {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  padding: 0.6rem 0.85rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+  background: rgba(124, 92, 252, 0.1);
+  color: var(--accent-primary);
+}
+
+.dropdown-item.active {
+  background: var(--accent-primary);
+  color: #fff;
 }
 
 .btn-ghost {
@@ -1375,8 +1453,9 @@
 
 .comment-input-container {
   display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
+  flex-direction: row;
+  gap: 0.75rem;
+  align-items: flex-start;
 }
 
 .comment-input {
@@ -1417,19 +1496,17 @@
 }
 
 .comment-submit-btn {
-  padding: 0.5rem 1.25rem;
+  padding: 0.6rem 1.75rem;
   background: var(--accent-primary);
   border: none;
   border-radius: 8px;
   color: white;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  min-width: auto;
-  width: auto;
-  height: fit-content;
-  align-self: flex-end;
+  width: fit-content;
+  box-shadow: 0 4px 12px rgba(124, 92, 252, 0.2);
 }
 
 .comment-submit-btn:hover:not(:disabled) {

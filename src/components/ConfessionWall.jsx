@@ -11,6 +11,7 @@ function ConfessionWall({ confessions, refreshData, currentAnonName, onPostClick
     const [secretCode, setSecretCode] = useState('');
     const [localConfessions, setLocalConfessions] = useState(confessions);
     const [selectedFilter, setSelectedFilter] = useState('All');
+    const [formCategory, setFormCategory] = useState('General');
 
     useEffect(() => {
         setLocalConfessions(confessions);
@@ -67,7 +68,7 @@ function ConfessionWall({ confessions, refreshData, currentAnonName, onPostClick
                     secretCode,
                     userId: user.id,
                     anonymousName: currentAnonName || 'Anonymous',
-                    category: selectedFilter === 'All' ? 'General' : selectedFilter
+                    category: formCategory
                 })
             });
 
@@ -81,6 +82,7 @@ function ConfessionWall({ confessions, refreshData, currentAnonName, onPostClick
             setSuccess('Confession posted anonymously! 🤫');
             setText('');
             setSecretCode('');
+            setFormCategory('General');
             setShowForm(false);
             fetchConfessions();
 
@@ -283,8 +285,8 @@ function ConfessionWall({ confessions, refreshData, currentAnonName, onPostClick
     const categories = ['All', 'Funny', 'Sad', 'Happy', 'Angry', 'Secret', 'Crush'];
 
     // Filter confessions by selected filter
-    const filteredConfessions = selectedFilter === 'All' 
-        ? localConfessions 
+    const filteredConfessions = selectedFilter === 'All'
+        ? localConfessions
         : localConfessions.filter(c => c.category === selectedFilter);
 
     return (
@@ -319,7 +321,7 @@ function ConfessionWall({ confessions, refreshData, currentAnonName, onPostClick
                             </div>
                             <button
                                 className="form-close"
-                                onClick={() => { setShowForm(false); setError(''); }}
+                                onClick={() => { setShowForm(false); setError(''); setFormCategory('General'); }}
                             >
                                 ✕
                             </button>
@@ -339,21 +341,59 @@ function ConfessionWall({ confessions, refreshData, currentAnonName, onPostClick
                                 <div className="char-count">{text.length}/1000</div>
                             </div>
 
-                            <div className="field-group">
-                                <label htmlFor="secret-code" className="field-label">
-                                    <span className="field-label-icon">🔑</span>
-                                    Secret Code
-                                </label>
-                                <input
-                                    id="secret-code"
-                                    type="password"
-                                    className="field-input"
-                                    placeholder="Min 4 chars"
-                                    value={secretCode}
-                                    onChange={(e) => setSecretCode(e.target.value)}
-                                    minLength={4}
-                                    autoComplete="new-password"
-                                />
+                            <div className="field-row">
+                                <div className="field-group flex-1">
+                                    <label htmlFor="secret-code" className="field-label">
+                                        <span className="field-label-icon">🔑</span>
+                                        Secret Code
+                                    </label>
+                                    <input
+                                        id="secret-code"
+                                        type="text"
+                                        className="field-input mask-input"
+                                        placeholder="Min 4 chars"
+                                        value={secretCode}
+                                        onChange={(e) => setSecretCode(e.target.value)}
+                                        minLength={4}
+                                        autoComplete="off"
+                                    />
+                                </div>
+
+                                <div className="field-group flex-1">
+                                    <label className="field-label">
+                                        <span className="field-label-icon">🏷️</span>
+                                        Category
+                                    </label>
+                                    <div className="custom-dropdown-container">
+                                        <button
+                                            type="button"
+                                            className="field-input custom-dropdown-trigger"
+                                            onClick={() => setShowFilterDropdown(prev => prev === 'form' ? false : 'form')}
+                                        >
+                                            <span className="dropdown-selected-text">
+                                                {formCategory}
+                                            </span>
+                                            <span className="dropdown-arrow">🔽</span>
+                                        </button>
+
+                                        {showFilterDropdown === 'form' && (
+                                            <div className="custom-dropdown-menu">
+                                                {['General', 'Funny', 'Sad', 'Happy', 'Angry', 'Secret', 'Crush'].map(cat => (
+                                                    <div
+                                                        key={cat}
+                                                        className={`dropdown-item ${formCategory === cat ? 'active' : ''}`}
+                                                        onClick={() => {
+                                                            setFormCategory(cat);
+                                                            setShowFilterDropdown(false);
+                                                        }}
+                                                    >
+                                                        {cat}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {error && <div className="msg msg-error">⚠️ {error}</div>}
@@ -389,18 +429,18 @@ function ConfessionWall({ confessions, refreshData, currentAnonName, onPostClick
                 <h2 className="section-title">Confession Feed</h2>
                 <div className="section-header-right">
                     <span className="section-count">{filteredConfessions.length} posts</span>
-                    
+
                     {/* Filter Button */}
                     <div className="feed-filter-wrapper">
                         <button
-                            className={`feed-filter-btn ${selectedFilter !== 'All' ? 'active' : ''}`}
-                            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                            className={`feed-filter-btn ${selectedFilter !== 'All' && showFilterDropdown !== 'feed' ? 'active' : ''}`}
+                            onClick={() => setShowFilterDropdown(prev => prev === 'feed' ? false : 'feed')}
                         >
                             <span className="feed-filter-label">Filter</span>
                             <span className="feed-filter-icon">🔽</span>
                         </button>
 
-                        {showFilterDropdown && (
+                        {showFilterDropdown === 'feed' && (
                             <div className="feed-filter-dropdown">
                                 <div className="feed-filter-list">
                                     {['All', 'Funny', 'Sad', 'Happy', 'Angry', 'Secret', 'Crush'].map(filter => (
@@ -710,12 +750,12 @@ function ConfessionWall({ confessions, refreshData, currentAnonName, onPostClick
                             </label>
                             <input
                                 id="modal-secret-code"
-                                type="password"
-                                className="field-input"
+                                type="text"
+                                className="field-input mask-input"
                                 placeholder="Enter your secret code to verify"
                                 value={modal.code}
                                 onChange={(e) => setModal(m => ({ ...m, code: e.target.value, error: '' }))}
-                                autoComplete="new-password"
+                                autoComplete="off"
                             />
                         </div>
 

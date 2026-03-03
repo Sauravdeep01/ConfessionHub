@@ -4,6 +4,7 @@ import ConfessionWall from './components/ConfessionWall';
 import Widgets from './components/Widgets';
 import UserProfile from './components/UserProfile';
 import PostDetail from './components/PostDetail';
+import LandingPage from './components/LandingPage';
 import React, { useState, useEffect, useCallback } from 'react';
 import { API_BASE_URL } from './config';
 
@@ -16,7 +17,8 @@ function App() {
   const [confessions, setConfessions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
-    const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(true);
+  const [showLanding, setShowLanding] = useState(true);
 
   // Apply theme class to body
   useEffect(() => {
@@ -142,7 +144,7 @@ function App() {
       } else {
         fetchUserAnonName();
       }
-    } else if (isLoaded && !user && !buttonRendered) {
+    } else if (isLoaded && !user && !showLanding && !showManualForm && !buttonRendered) {
       const timer = setTimeout(() => {
         renderGoogleButton('google-signin-button', {
           theme: 'filled_blue',
@@ -154,14 +156,14 @@ function App() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [user, isLoaded, hasSynced, buttonRendered, renderGoogleButton]);
+  }, [user, isLoaded, hasSynced, buttonRendered, renderGoogleButton, showManualForm, showLanding]);
 
   useEffect(() => {
     if (!user) {
       setHasSynced(false);
       setButtonRendered(false);
     }
-  }, [user]);
+  }, [user, showManualForm, showLanding]);
 
   const renderContent = () => {
     switch (activeView) {
@@ -265,6 +267,10 @@ function App() {
     );
   }
 
+  if (!user && showLanding) {
+    return <LandingPage onGetStarted={() => setShowLanding(false)} />;
+  }
+
   return (
     <div className="app">
       {/* =================== LOGIN SCREEN =================== */}
@@ -273,6 +279,27 @@ function App() {
           <div className="login-glow login-glow-1"></div>
           <div className="login-glow login-glow-2"></div>
           <div className="login-card">
+            <button
+              className="login-close-btn"
+              onClick={() => setShowLanding(true)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'rgba(255,255,255,0.05)',
+                border: 'none',
+                color: '#fff',
+                fontSize: '20px',
+                cursor: 'pointer',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease'
+              }}
+            >✕</button>
             <div className="login-logo">
               <span className="logo-circle">🕊️</span>
             </div>
